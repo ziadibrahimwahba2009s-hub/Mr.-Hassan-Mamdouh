@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل حضور الطالب</title>
+<style>
+body{font-family:sans-serif;background:#f4f6f9;padding:20px;}
+.container{max-width:700px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+h2{text-align:center;color:#1a73e8;}
+input{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;}
+button{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th, td{border:1px solid #ccc;padding:8px;text-align:center;}
+th{background:#1a73e8;color:#fff;}
+.status-present{color:green;font-weight:bold;}
+.status-absent{color:red;font-weight:bold;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>سجل حضور الطالب</h2>
+
+<input type="text" id="name" placeholder="اسم الطالب">
+<input type="number" id="code" placeholder="كود الطالب">
+<input type="text" id="center" placeholder="اسم السنتر">
+<button onclick="showAttendance()">عرض السجل</button>
+
+<div id="result"></div>
+</div>
+
+<script>
+function showAttendance(){
+  const name = document.getElementById("name").value.trim();
+  const code = document.getElementById("code").value.trim();
+  const center = document.getElementById("center").value.trim();
+
+  if(!name || !code || !center){
+    alert("اكمل جميع البيانات");
+    return;
+  }
+
+  let students = JSON.parse(localStorage.getItem("students")) || [];
+  let student = students.find(s => s.id === code && s.name === name && s.center === center);
+
+  if(!student){
+    document.getElementById("result").innerHTML = "لا يوجد سجل مطابق للبيانات المدخلة";
+    return;
+  }
+
+  if(!student.history || student.history.length===0){
+    document.getElementById("result").innerHTML = "لا يوجد تسجيل حضور أو غياب حتى الآن";
+    return;
+  }
+
+  // بناء جدول السجل
+  let html = "<table><tr><th>التاريخ</th><th>الساعة</th><th>الحالة</th></tr>";
+  student.history.forEach(h=>{
+    html += `<tr>
+      <td>${h.date}</td>
+      <td>${h.time}</td>
+      <td class="${h.status==='حاضر'?'status-present':'status-absent'}">${h.status}</td>
+    </tr>`;
+  });
+  html += "</table>";
+  document.getElementById("result").innerHTML = html;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نسخة احتياطية للطلاب</title>
+<style>
+body{font-family:sans-serif;background:#f4f6f9;padding:20px;}
+.container{max-width:500px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+h2{text-align:center;color:#1a73e8;}
+button{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>حفظ نسخة احتياطية من بيانات الطلاب</h2>
+<button onclick="downloadBackup()">حفظ نسخة JSON</button>
+<button onclick="downloadCSV()">حفظ نسخة CSV</button>
+</div>
+
+<script>
+// تحميل JSON
+function downloadBackup(){
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    if(students.length===0){ alert("لا توجد بيانات للحفظ"); return; }
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students,null,2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download","students_backup.json");
+    dlAnchor.click();
+}
+
+// تحويل البيانات لـ CSV وتحميلها
+function downloadCSV(){
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    if(students.length===0){ alert("لا توجد بيانات للحفظ"); return; }
+
+    let csv = "id,name,center,parent,student,present,absent,date,time,status\n";
+
+    students.forEach(s=>{
+        if(s.history && s.history.length>0){
+            s.history.forEach(h=>{
+                csv += `${s.id},${s.name},${s.center},${s.parent},${s.student},${s.present},${s.absent},${h.date},${h.time},${h.status}\n`;
+            });
+        }else{
+            csv += `${s.id},${s.name},${s.center},${s.parent},${s.student},${s.present},${s.absent},,,\n`;
+        }
+    });
+
+    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download","students_backup.csv");
+    dlAnchor.click();
+}
+</script>
+
+</body>
+</html>
