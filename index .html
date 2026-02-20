@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام السنتر</title>
+<style>
+body{font-family:sans-serif;background:#f4f6f9;padding:20px;}
+.container{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+.card{background:#fafafa;border-radius:12px;padding:15px;margin-bottom:15px;}
+h1{text-align:center;color:#1a73e8;margin-bottom:5px;}
+input{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;}
+button{width:100%;padding:10px;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;margin-top:5px;}
+.btn-present{background:#34a853;}
+.btn-absent{background:#ea4335;}
+</style>
+</head>
+<body>
+
+<script>
+// حماية الصفحة بكلمة مرور
+const PASSWORD = "102008302962"; 
+let entered = prompt("ادخل كلمة المرور للدخول:");
+if(entered !== PASSWORD){
+    alert("كلمة المرور خطأ! سيتم غلق الصفحة.");
+    document.body.innerHTML = "";
+    throw new Error("Wrong password");
+}
+</script>
+
+<div class="container">
+
+<h1>أستاذ حسن ممدوح</h1>
+
+<div class="card">
+<h3>➕ تسجيل الطالب</h3>
+<input type="number" id="sid" placeholder="كود الطالب">
+<input type="text" id="sname" placeholder="اسم الطالب">
+<input type="text" id="centerName" placeholder="اسم السنتر">
+<input type="text" id="parentPhone" placeholder="رقم ولي الأمر">
+<input type="text" id="studentPhone" placeholder="رقم الطالب">
+<button style="background:#1a73e8" onclick="saveStudent()">حفظ الطالب</button>
+</div>
+
+<div class="card">
+<h3>✅ الحضور والغياب</h3>
+<input type="number" id="cid" placeholder="كود الطالب">
+<button class="btn-present" onclick="processStatus('حاضر')">حاضر</button>
+<button class="btn-absent" onclick="processStatus('غائب')">غائب</button>
+</div>
+
+</div>
+
+<script>
+const centerNumbers = ["201011111111","201022222222"];
+
+function formatPhone(phone){
+phone = phone.trim();
+if(!phone.startsWith("2")) return "2"+phone;
+return phone;
+}
+
+// حفظ الطالب في localStorage
+function saveStudent(){
+const id = sid.value.trim();
+const name = sname.value.trim();
+const center = centerName.value.trim();
+const parent = formatPhone(parentPhone.value.trim());
+const student = formatPhone(studentPhone.value.trim());
+
+if(!id||!name||!center||!parent||!student){ alert("اكمل البيانات"); return;}
+
+let students = JSON.parse(localStorage.getItem("students"))||[];
+
+if(students.find(s=>s.id===id)){ alert("الكود متسجل"); return;}
+
+students.push({id,name,center,parent,student,present:0,absent:0,history:[]});
+localStorage.setItem("students",JSON.stringify(students));
+alert("تم حفظ الطالب ✅");
+
+sid.value=""; sname.value=""; centerName.value=""; parentPhone.value=""; studentPhone.value="";
+}
+
+// تسجيل حضور أو غياب مع حفظ تلقائي
+function processStatus(status){
+const id = cid.value.trim();
+if(!id){ alert("اكتب الكود"); return;}
+
+let students = JSON.parse(localStorage.getItem("students"))||[];
+let student = students.find(s=>s.id===id);
+
+if(!student){ alert("الطالب غير مسجل"); return;}
+
+status==="حاضر"? student.present++ : student.absent++;
+
+let now = new Date();
+let date = now.toLocaleDateString('ar-EG');
+let time = now.toLocaleTimeString('ar-EG');
+
+student.history.push({date,time,status});
+
+localStorage.setItem("students",JSON.stringify(students));
+
+// إرسال رسالة واتساب تلقائية
+let msg = `📢 إشعار متابعة الطالب
+نحيط سيادتكم علماً بأن الطالب: ${student.name}
+الحالة اليوم: ${status}
+📅 التاريخ: ${date}
+⏰ الوقت: ${time}
+🏫 السنتر: ${student.center}
+مع خالص تمنياتنا بالتوفيق 🌟
+*تيم أستاذ حسن ممدوح*`;
+
+[student.parent,student.student,...centerNumbers].forEach(phone=>{
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,"_blank");
+});
+
+cid.value="";
+}
+</script>
+
+</body>
+</html>
